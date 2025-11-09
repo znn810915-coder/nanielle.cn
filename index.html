@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>无畏契约 · 8维人格上分测评 (V-Final 3.2 最终版)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* ----------------- V-Final 修复版 CSS ----------------- */
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+    background:linear-gradient(180deg,#fbf8f5,#fffdfb);
+    font-family:"PingFang SC","Microsoft YaHei",sans-serif;
+    color:#22303a;
+    padding:18px
+}
+.wrap{max-width:980px;margin:12px auto}
+.card{
+    background:linear-gradient(180deg,#ffffff,#fffaf6);
+    border-radius:14px;
+    padding:20px;
+    box-shadow:0 14px 40px rgba(34,45,50,0.06);
+    border:1px solid rgba(0,0,0,0.02)
+}
+.header{display:flex;justify-content:space-between;align-items:center}
+.logo{
+    width:64px;height:64px;border-radius:12px;
+    background:linear-gradient(135deg,#fff6f7,#fffaf7);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:900;color:#ff6b82
+}
+.title{font-weight:900;font-size:18px;color:#21303a}
+.subtitle{font-size:13px;color:#6b7785;margin-top:6px}
+
+/* Question UI */
+.progress-wrap{height:10px;background:#f2f2f2;border-radius:10px;overflow:hidden;margin-top:14px}
+.progress{height:100%;width:0;background:linear-gradient(90deg,#ffd2d8,#ff9aa2);transition:width .28s}
+.q-head{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.q-text{font-size:16px;color:#21303a;line-height:1.6;margin-top:12px;font-weight:600;}
+.opts{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.opt{
+    background:#fff;border:1px solid rgba(34,45,50,0.04);
+    padding:14px;border-radius:12px;cursor:pointer;
+    display:flex;align-items:center;gap:12px;
+    transition:transform .12s, box-shadow .12s;
+}
+.opt:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(34,45,50,0.08)}
+.opt .tag{
+    width:48px;height:48px;border-radius:12px;
+    background:linear-gradient(180deg,#fff6f6,#fffaf7);
+    display:flex;align-items:center;justify-content:center;
+    color:#ff6b82;font-weight:900;
+    flex-shrink: 0;
+}
+.opt-text{ flex: 1; line-height: 1.5; }
+.selected{box-shadow:0 10px 24px rgba(255,107,130,0.15) !important;
+border-color:#ff9aa2 !important; background:#fff7f8 !important;}
+
+/* nav */
+.nav{display:flex;gap:10px;margin-top:16px}
+.btn{flex:1;padding:12px;border-radius:12px;border:none;background:#ff9aa2;color:#fff;font-weight:900;cursor:pointer}
+.btn.ghost{background:#fff;border:1px solid rgba(34,45,50,0.04);color:#344955}
+
+/* result */
+.result-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr; 
+    gap:18px;
+    margin-top:14px
+}
+.result-grid-left{display:flex; flex-direction:column; gap: 12px;}
+.result-grid-right{display:flex; flex-direction:column;
+gap: 12px;}
+
+.meta-title{font-weight:900;color:#ff6b82;font-size:16px}
+.panel{
+    padding:16px;border-radius:10px;background:#fff;
+    border:1px solid rgba(34,45,50,0.03);white-space:pre-wrap;
+    line-height:1.7;
+}
+.panel-title{font-weight:800;margin-bottom:8px;}
+.small{font-size:13px;color:#6b7785}
+
+/* responsive */
+@media(max-width:920px){
+    .result-grid{grid-template-columns:1fr} 
+    .wrap{padding:8px}
+    body{padding: 8px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="card header">
+    <div style="display:flex;gap:12px;align-items:center">
+      <div class="logo">VAL</div>
+      <div>
+        <div class="title">无畏契约 · 8维人格上分测评</div>
+        <div class="subtitle">40题完整测试 · Nanielle电竞心理（人格上分辅助）</div>
+      </div>
+    </div>
+  </div>
+<div class="card" id="quizCard" style="margin-top:18px">
+
+  <div class="progress-wrap"><div id="progress" class="progress"></div></div>
+    <div class="q-head">
+      <div style="font-weight:800;color:#ff6b82">第 <span id="qNum">1</span>/40 题</div>
+      <div id="qPct" class="small">0%</div>
+    </div>
+
+    <div id="qText" class="q-text">加载题目中…</div>
+    <div id="opts" class="opts">
+      </div>
+
+    <div class="nav" style="margin-top:14px">
+      <button id="prevBtn" class="btn ghost">上一题</button>
+    </div>
+
+    <div class="small" style="margin-top:12px">提示：答题后自动跳题；支持键盘 1-5 快捷选择。</div>
+  </div>
+
+  <div class="card" id="resultCard" style="display:none;margin-top:18px">
+    
+    <div style="display:flex;justify-content:space-between;align-items:center;
+margin-bottom: 12px;">
+      <div>
+        <div id="personaTitle" class="meta-title" style="font-size: 20px;">你的战场画像</div>
+        <div id="personaSub" class="small" style="margin-top:6px">测评完成 · 8维能力 & 4维定位</div>
+      </div>
+      <div style="text-align:right">
+        <div class="small">V-Final 角色定位</div>
+        <div style="font-weight:900;font-size:24px;color:#ff6b82" id="mainRole"></div>
+      </div>
+    </div>
+
+    <div class="result-grid">
+      
+      <div class="result-grid-left">
+      
+   <div class="panel">
+          <div class="panel-title">人格分析 (主/辅策略)</div>
+          <div id="advText" class="small" style="line-height: 1.8;"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">V-Final 四维角色定位 (R1-R4)</div>
+          <div style="margin-top:8px;
+display:flex; justify-content:center;">
+            <canvas id="pieChart" width="300" height="250"></canvas>
+          </div>
+          <div id="roleText" style="margin-top:8px" class="small"></div>
+        </div>
+      </div>
+
+      <div class="result-grid-right">
+        <div class="panel">
+          <div class="panel-title">V-Final 八维能力图</div>
+          <div style="margin-top:8px;
+display:flex; justify-content:center;">
+            <canvas id="radar" width="300" height="250"></canvas>
+          </div>
+          <div id="dimText" style="margin-top:8px" class="small"></div>
+        </div>
+        <div class="panel">
+            <div class="panel-title">测试操作</div>
+            <button id="retest" class="btn ghost" style="width: 100%;">重新测试</button>
+        </div>
+      
+</div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==================== 1. 题库 (40题) ==================== */
+const QUESTIONS = [
+"1. 你更偏好在团队中扮演哪个角色？A. 进攻核心 B. 战术指挥 C. 保护与治疗 D. 侦察与信息 E. 控场与分割",
+"2. 面对未知信息，你的第一反应是？A. 主动出击，探出虚实 B. 保持阵型，等待指令 C. 准备支援，随时补位 D. 寻找制高点，获取信息 E. 布置陷阱，限制敌方行动",
+"3. 你认为赢下残局的关键在于？A. 个人高超的枪法和反应 B. 精心算计时间与站位 C. 队友之间的相互掩护 D. 对敌方位置的精准预判 E. 技能封锁与区域分割",
+"4. 在劣势局中，你更倾向于？A. 激进出击，尝试改变局势 B. 制定慢速、稳健的反击计划 C. 鼓励队友，提供心理支持 D. 寻找突破口，获取关键信息 E. 利用技能，拖延时间并防守",
+"5. 你对地图的理解更侧重于？A. 快速进入点位和清点路线 B. 最佳的烟雾和封锁时机 C. 关键掩体和交叉火力位置 D. 敌方可能出现的位置和侦察点 E. 技能控制区域的覆盖范围",
+"6. 发现敌方残血时，你会？A. 毫不犹豫地追击收割 B. 向指挥报告，等待最优战术 C. 呼叫队友集火或补位 D. 保持静默，利用声音和视野压制 E. 布置技能，防止其逃脱或恢复",
+"7. 你最不能忍受队友犯的错误是？A. 畏首畏尾，不敢进点 B. 盲目放技能，浪费资源 C. 不听指挥，各自为战 D. 信息不共享，错过关键情报 E. 阵线脱节，无法形成联防",
+"8. 在进攻时，你的心态更像？A. 攻城锤，强行突破 B. 棋手，每一步都有深意 C. 牧师，为队友创造机会 D. 猎人，静待最佳猎杀时机 E. 工程师，构造完美的推进环境",
+"9. 如果你的首要角色被选，你会选择？A. 另一个决斗位，保持高输出 B. 和其他队友沟通等待补位 C. 另一个先锋或哨位，以辅助为主 D. 另一个能提供信息的角色 E. 另一个能封锁区域的角色",
+"10. 你在游戏中最享受的时刻是？A. 完成高难度多杀，力挽KuangLan B. 你的战术被完美执行 C. 成功救助队友，或关键治疗 D. 你的信息帮助队伍获胜 E. 利用技能，将敌人玩弄于股掌之间",
+"11. 你的枪法属于哪一类？A. 反应快，擅长近距离爆发 B. 稳定，擅长预瞄和卡点 C. 一般，更注重与技能配合 D. 精准，擅长长距离点射 E. 稳健，擅长中距离泼水",
+"12. 当你独自防守一个点位觉察到对方进攻时，你会？A. 提前前压，寻找机会打出首杀 B. 站位靠后，拖延时间等队友 C. 准备好技能，在队友到达时提供支援 D. 保持静默，利用声音和视野判断 E. 在点位内部布置陷阱或封锁线",
+"13. 在团队沟通中，你更倾向于？A. 快速报告发现，言简意赅 B. 详细分析局势，提出建议 C. 询问队友需求，提供帮助 D. 描述敌方精确位置和状态 E. 提出转点或撤退的策略",
+"14. 经济局时，你的选择偏向？A. 追求高风险高回报的近战武器 B. 购买半自动或高穿透武器，保持稳定 C. 购买护甲和辅助型技能 D. 购买短枪和轻甲，尝试侦察和偷袭 E. 购买基础控场技能，减少不必要消耗",
+"15. 你觉得最能体现你价值的技能是？A. 快速位移或致盲，用于突破 B. 烟雾或屏障，用于分割战场 C. 治疗或群体增益，用于保护队友 D. 侦察箭或声呐，用于获取视野 E. 陷阱或减速带，用于区域封锁",
+"16. 进攻受阻时，你会？A. 尝试利用个人技术强行突破 B. 快速转点，寻找新的战术路线 C. 请求队友集中火力，强行开团 D. 保持耐心，等待敌方出现破绽 E. 改变技能布置，重新分割点位",
+"17. 你的角色选择受什么影响最大？A. 个人手感和操作空间 B. 地图特性和战术需求 C. 队友的角色和需求 D. 敌方的阵容配置 E. 我方和敌方的经济情况",
+"18. 在一场势均力敌的对局中，你最容易感到？A. 兴奋，准备好迎接挑战 B. 紧张，担心战术执行出问题 C. 平静，随时准备为队友牺牲 D. 专注，致力于捕捉每个细节 E. 满足，享受拉扯和控场的乐趣",
+"19. 如果你的大招（终极技能）好了，你会？A. 立即寻找机会，释放大招开团 B. 保留大招，等待关键回合使用 C. 询问队友，配合他们的技能释放 D. 利用大招效果，获取关键情报 E. 利用大招，强行占领或防守点位",
+"20. 在购买阶段，你更愿意把钱花在？A. 高性能武器 B. 满技能 C. 满护甲 D. 武器和轻甲的平衡 E. 控场技能",
+"21. 你倾向于在地图上哪个区域活跃？A. 敌方前线和突破口 B. 关键中路和交火区 C. 己方后排和支援位 D. 侧翼和转点路线 E. 点位内部和防守核心",
+"22. 听到敌人脚步声，你的反应是？A. 快速拉出，预瞄射击 B. 告知队友，准备交叉火力 C. 调整站位，准备保护关键点 D. 保持静默，等待确认准确位置 E. 丢出技能，封锁或减速来敌",
+"23. 你认为一个好的指挥需要具备？A. 果断的决策和冲锋的勇气 B. 清晰的思路和周密的计划 C. 强大的凝聚力和鼓励能力 D. 对局势和信息的精准掌握 E. 对地图和角色技能的深刻理解",
+"24. 你对自己的枪法有信心吗？A. 非常有信心，是队伍的火力担当 B. 较有信心，擅长在稳定中求胜 C. 一般，更相信团队和技能 D. 很有信心，擅长远距离和头线 E. 依赖站位和技能创造的优势",
+"25. 在被敌人夹击时，你会？A. 选择最弱的一方，尝试突破包围 B. 利用技能或障碍物，制造1v1环境 C. 立即呼叫队友支援或撤退 D. 快速交换信息，寻找最佳逃生路线 E. 丢出所有技能，尝试拖延时间",
+"26. 你认为最能帮助团队上分的因素是？A. 个人技术和高击杀数 B. ACDE和战术体系 C. 积极的沟通和配合 D. 对敌方策略的破解 E.整体资源的掌控",
+"27. 在防守方，你更喜欢？A. 前压抢信息，争取首杀 B. 在中远距离卡点，稳定输出 C. 保护队友，尤其是脆皮角色 D. 侦察敌方动向，提前报告 E. 布置陷阱，等待敌方进入圈套",
+"28. 你的游戏风格更偏向？A. 侵略性和高风险 B. 稳健性和计算 C. 协作性和奉献 D. 观察性和等待 E. 规划性和控制",
+"29. 如果一个点位被完全占领，你的首要任务是？A. 组织反扑，利用个人爆发清点 B. 快速封锁后路，进行侧翼包抄 C. 保证自己不死，为下回合经济做准备 D. 收集信息，报告敌方后续动向 E. 利用技能，尝试切割点位内敌人",
+"30. 你的心理韧性如何？A. 越是逆风越有斗志 B. 容易受战术失误影响，但能调整 C. 倾向于稳定，避免情绪波动 D. 依赖信息，信息缺失会感到焦虑 E. 擅长自我调整，保持冷静",
+"31. 你最喜欢使用哪种武器？A. 步枪 B. 狙击枪 C. 冲锋枪或霰弹枪 D. 狙击枪 E. 轻机枪或重武器",
+"32. 进攻时，你更愿意让谁第一个进点？A. 我自己，我能开路 B. 控场位，他能封锁点位 C. 另一个决斗位，我负责补枪 D. 先锋位，他能提供视野 E. 哨位，他能布置防御",
+"33. 你认为最难对付的敌人是？A. 枪法特别准的对手 B. 战术变化莫测的对手 C. 团队配合特别默契的对手 D. 侦察能力特别强的对手 E. 控场和封锁能力特别强的对手",
+"34. 你的决策速度通常是？A. 极快，偏向直觉和本能 B. 较快，但会经过快速计算 C. 适中，倾向于听从指令 D. 慢速，需要充分信息后再行动 E. 较快，但更依赖预设的战术方案",
+"35. 当你成功打掉一个敌人时，你会？A. 立即拉开或寻找下一个目标 B. 报告位置，并重新调整S-S C. 询问队友是否需要帮助 D. 确认是否还有其他敌人信息 E. 利用技能，防止敌方队友补枪",
+"36. 你对游戏的理解偏向？A. 个人能力和操作上限 B. 整体战术和资源管理 C. 团队精神和协同作战 D. 情报优势和视野控制 E. 地图空间和时间控制",
+"37. 哪个比分最让你感到压力？A. 12:12（加时赛） B. 0:5（开局落后） C. 5:7（上半场小劣） D. 11:11（关键局） E. 10:2（大幅领先但被追分）",
+"38. 你更喜欢哪种类型的队友？A. 枪刚且敢于 breakthrough B. 能够稳定指挥和控场的 C. 能够及时治疗和支援的 D. 能够提供大量情报和视野的 E. 能够灵活布置陷阱和封锁的",
+"39. 你经常使用假动作和心理战吗？A. 很少，我更喜欢正面突破 B. 经常，这是战术的一部分 C. 偶尔，主要用在残局 D. 经常，用来获取信息和位置 E. 经常，用来引诱敌人进入陷阱",
+"40. 你认为你的核心优势是？A. 爆发力和压制力 B. 策略部署和执行力 C. 团队意识和奉献精神 D. 情报获取和精准瞄准 E. 区域控制和时间拉扯",
+];
+const TOTAL_QUESTIONS = QUESTIONS.length;
+</script>
+<script>
+/* (接上一段的 <script> 标签) */
+
+/* ==================== 2. V-Final 3.0 逻辑标签 (8D & 4R) ==================== */
+const DIM_NAMES_8D = [
+  'D1: 机械枪法 (Aim)', 'D2: 战术决策 (Strategy)', 'D3: 地图意识 (Awareness)', 'D4: 团队协作 (Teamplay)',
+  'D5: 心态韧性 (Mentality)', 'D6: 沟通激励 (Comms)', 'D7: 进攻倾向 (Proactivity)', 'D8: 纪律生存 (Discipline)'
+];
+const ROLE_NAMES_4D = [
+  'R1 决斗者', 'R2 控场者', 'R3 哨卫', 'R4 先锋'
+];
+
+/* ==================== 3. V-Final 3.0 核心算法 (W_i) ==================== */
+const ROLE_IDEAL_WEIGHTS_8D = {
+  // R1 决斗者: 极高D1, D7, D5 (KDA/进攻/抗压)
+  R1: [0.30, 0.10, 0.05, 0.05, 0.20, 0.05, 0.20, 0.05], 
+  // R2 控场者: 极高D2, D3 (战术/意识)
+  R2: [0.10, 0.30, 0.20, 0.10, 0.10, 0.05, 0.05, 0.10], 
+  // R3 哨卫: 极高D3, D8 (意识/纪律/生存)
+  R3: [0.15, 0.10, 0.30, 0.10, 0.10, 0.05, 0.05, 0.15], 
+  // R4 先锋: 极高D4, D6, D3 (协作/沟通/意识)
+  R4: [0.10, 0.15, 0.20, 0.25, 0.05, 0.15, 0.05, 0.05]
+};
+
+/* ==================== 4. 全局状态变量 ==================== */
+let currentQ = 0;
+let answers = new Array(TOTAL_QUESTIONS).fill(null);
+let scores_8D_raw = new Array(8).fill(0);
+let role_fit_scores_4R = new Array(4).fill(0);
+
+/*
+ * [V3.2 修复] 8 维最大原始分 (2倍分值)
+ */
+const max_scores_8D = [
+    430, // D1 枪法 (215 * 2)
+    660, // D2 战术 (330 * 2)
+    500, // D3 意识 (250 * 2)
+    360, // D4 协作 (180 * 2)
+    360, // D5 心态 (180 * 2)
+    270, // D6 沟通 (135 * 2)
+    360, // D7 进攻 (180 * 2)
+    640  // D8 纪律 (320 * 2)
+];
+
+/* ==================== 5. 8维计算权重图 (V3.0 核心逻辑) ==================== */
+const DIM_CALC_MAP = {
+  0: [ ['D1','D7'], ['D2','D6'], ['D4','D5'], ['D3','D6'], ['D2','D8'] ], // Q1
+  1: [ ['D7'], ['D4','D8'], ['D4','D5'], ['D3'], ['D2','D8'] ], // Q2
+  2: [ ['D1'], ['D2','D3'], ['D4'], ['D3'], ['D2','D8'] ], // Q3
+  3: [ ['D7','D5'], ['D2','D8'], ['D5','D6'], ['D3'], ['D2','D8'] ], // Q4
+  4: [ ['D1','D7'], ['D2','D8'], ['D4','D8'], ['D3'], ['D2','D8'] ], // Q5
+  5: [ ['D1','D7'], ['D6','D8'], ['D4','D6'], ['D3','D8'], ['D2'] ], // Q6
+  6: [ ['D7'], ['D8'], ['D2','D8'], ['D3','D6'], ['D4'] ], // Q7
+  7: [ ['D1','D7'], ['D2','D3'], ['D4','D6'], ['D3','D8'], ['D2','D8'] ], // Q8
+  8: [ ['D1','D7'], ['D2'], ['D4'], ['D3'], ['D2','D8'] ], // Q9
+  9: [ ['D1','D5'], ['D2'], ['D4','D5'], ['D3','D6'], ['D2','D3'] ], // Q10
+  10: [ ['D1','D7'], ['D1','D8'], ['D2','D4'], ['D1','D3'], ['D1','D8'] ], // Q11
+  11: [ ['D1','D7'], ['D5','D8'], ['D4','D6'], ['D3','D8'], ['D2','D8'] ], // Q12
+  12: [ ['D6','D7'], ['D2','D6'], ['D4','D6'], ['D3','D6'], ['D2','D6'] ], // Q13
+  13: [ ['D1','D7'], ['D1','D8'], ['D4','D8'], ['D3','D7'], ['D2','D8'] ], // Q14
+  14: [ ['D1','D7'], ['D2','D8'], ['D4','D5'], ['D3'], ['D2','D8'] ], // Q15
+  15: [ ['D1','D7'], ['D2','D3'], ['D4','D6'], ['D5','D8'], ['D2'] ], // Q16
+  16: [ ['D1','D7'], ['D2','D3'], ['D4'], ['D2','D3'], ['D2','D8'] ], // Q17
+  17: [ ['D5','D7'], ['D5'], ['D4','D5'], ['D3','D5'], ['D2','D5'] ], // Q18
+  18: [ ['D7'], ['D2','D8'], ['D4','D6'], ['D3'], ['D2','D8'] ], // Q19
+  19: [ ['D1'], ['D2'], ['D5','D8'], ['D8'], ['D2','D8'] ], // Q20
+  20: [ ['D1','D7'], ['D2','D3'], ['D4','D8'], ['D3','D7'], ['D8'] ], // Q21
+  21: [ ['D1','D7'], ['D4','D6'], ['D4','D8'], ['D3','D8'], ['D2'] ], // Q22
+  22: [ ['D5','D7'], ['D2','D8'], ['D4','D6'], ['D3'], ['D2','D3'] ], // Q23
+  23: [ ['D1','D5'], ['D1','D8'], ['D4','D5'], ['D1','D3'], ['D2','D8'] ], // Q24
+  24: [ ['D1','D7'], ['D1','D2'], ['D4','D6'], ['D3','D5'], ['D5','D8'] ], // Q25
+  25: [ ['D1'], ['D2','D8'], ['D4','D6'], ['D2','D3'], ['D2','D3'] ], // Q26
+  26: [ ['D7'], ['D1','D8'], ['D4','D5'], ['D3','D6'], ['D2','D8'] ], // Q27
+  27: [ ['D7'], ['D2','D8'], ['D4'], ['D3','D5'], ['D2','D8'] ], // Q28
+  28: [ ['D1','D7'], ['D2','D3'], ['D5','D8'], ['D3','D6'], ['D2'] ], // Q29
+  29: [ ['D5','D7'], ['D5'], ['D5','D8'], ['D3','D5'], ['D2','D5'] ], // Q30
+  30: [ ['D1','D8'], ['D1','D8'], ['D1','D7'], ['D1','D3'], ['D2','D8'] ], // Q31
+  31: [ ['D1','D7'], ['D2'], ['D1','D4'], ['D3'], ['D8'] ], // Q32
+  32: [ ['D1'], ['D2'], ['D4'], ['D3'], ['D2','D8'] ], // Q33
+  33: [ ['D1','D7'], ['D2','D3'], ['D4','D8'], ['D3','D8'], ['D2','D8'] ], // Q34
+  34: [ ['D1','D7'], ['D6','D8'], ['D4','D6'], ['D3'], ['D2'] ], // Q35
+  35: [ ['D1','D7'], ['D2','D8'], ['D4','D6'], ['D3'], ['D2','D3'] ], // Q36
+  36: [ ['D1','D5'], ['D4','D5'], ['D2','D5'], ['D5','D8'], ['D5'] ], // Q37
+  37: [ ['D1','D7'], ['D2','D8'], ['D4','D5'], ['D3','D6'], ['D2','D3'] ], // Q38
+  38: [ ['D1','D8'], ['D2','D7'], ['D1','D5'], ['D3','D7'], ['D2','D3'] ], // Q39
+  39: [ ['D1','D7'], ['D2','D8'], ['D4','D5'], ['D3','D6'], ['D2','D8'] ]  // Q40
+};
+</script>
+<script>
+/* (接上一段的 <script> 标签) */
+
+/* ==================== 6. [保留] 4色人格评语 (DISC) ==================== */
+const ROLE_PERSONA_TEXT = [
+  // R1 (决斗者) -> D型 (红色)
+  `【主要推荐：决斗者 (D型-红色)】\n你果断、直接、注重结果。你天生就是突破手，喜欢掌控主动权，用你强大的执行力为团队打开局面。你的核心动机是“获胜”。\n【上分建议】你的压迫力是团队的利刃，但要注意避免与团队脱节。在冲锋时，多利用队友的辅助技能，确保你的进攻既高效又安全。`,
+  // R2 (控场者) -> C型 (蓝色)
+  `【主要推荐：控场者 (C型-蓝色)】\n你精确、冷静、善于分析。你喜欢通过周密的计划和对地图的精细控制来主导战局。你的核心动机是“正确”。\n【上分建议】你的战术布局是团队的“安全网”。利用你的烟雾和屏障分割战场，为队友创造1v1的优势环境。你的冷静是残局中最强大的武器。`,
+  // R3 (哨卫) -> S型 (绿色)
+  `【主要推荐：哨卫 (S型-绿色)】\n你沉稳、耐心、乐于支援。你是团队中最可靠的后盾，喜欢通过稳定的防守和信息收集来保护侧翼。你的核心动机是“稳定”。\n【上分建议】你的耐心和区域控制能力是防守的核心。利用你的陷阱和技能拖延敌人进攻，为队友回防争取宝贵时间。你的价值在于让队友感到“安全”。`,
+  // R4 (先锋) -> I型 (黄色)
+  `【主要推荐：先锋 (I型-黄色)】\n你乐观、积极、善于侦察。你是团队的“信息发起者”，喜欢利用侦察技能为团队探明前路，并激励队友。你的核心动机是“协作”。\n【上分建议】你的信息是团队进攻的号角。大胆使用你的侦察技能，为决斗者提供清晰的进攻路线。你的闪光和控制技能是发起团战的关键。`
+];
+
+
+/* ==================== 7. DOM 元素获取 ==================== */
+const quizCard = document.getElementById('quizCard');
+const resultCard = document.getElementById('resultCard');
+const qNumSpan = document.getElementById('qNum');
+const qPctSpan = document.getElementById('qPct');
+const progressBar = document.getElementById('progress');
+const qTextDiv = document.getElementById('qText');
+const optsDiv = document.getElementById('opts');
+const prevBtn = document.getElementById('prevBtn');
+const retestBtn = document.getElementById('retest');
+
+// 结果页 DOM
+const personaTitleDiv = document.getElementById('personaTitle');
+const personaSubDiv = document.getElementById('personaSub');
+const mainRoleDiv = document.getElementById('mainRole');
+const advTextDiv = document.getElementById('advText');
+const radarCanvas = document.getElementById('radar');
+const pieCanvas = document.getElementById('pieChart');
+const dimTextDiv = document.getElementById('dimText');
+const roleTextDiv = document.getElementById('roleText');
+// 图表实例 (用于销毁)
+let radarChartInstance = null;
+let pieChartInstance = null;
+/* ==================== 8. 核心函数 (V3.0 重构) ==================== */
+
+/**
+ * 解析题目字符串 (无需修改)
+ */
+function parseQuestion(qString) {
+    const parts = qString.split('A.');
+    if (parts.length < 2) {
+        console.error("题目格式错误，无法解析: ", qString);
+        return { text: "题目加载失败", options: [] };
+    }
+    const text = parts[0].replace(/^[0-9]+\.\s*/, '').trim();
+    const allOptionsStr = 'A.' + parts[1];
+    const optionParts = allOptionsStr.split(/\s(?=[B-E]\.)/);
+    const options = optionParts.map(opt => {
+        return opt.replace(/^[A-E]\.\s/, '').trim();
+    });
+    while (options.length < 5 && options.length > 0) {
+        options.push("选项加载失败");
+    }
+    if(options.length > 5) options.length = 5;
+    return { text, options };
+}
+
+/**
+ * 渲染当前题目 (无需修改)
+ */
+function renderQuestion() {
+  if (currentQ >= TOTAL_QUESTIONS) {
+    showResult();
+    return;
+  }
+  const qData = parseQuestion(QUESTIONS[currentQ]);
+  qNumSpan.textContent = currentQ + 1;
+  qPctSpan.textContent = `${Math.floor((currentQ / TOTAL_QUESTIONS) * 100)}%`;
+  progressBar.style.width = `${((currentQ + 1) / TOTAL_QUESTIONS) * 100}%`;
+  qTextDiv.textContent = qData.text;
+  optsDiv.innerHTML = '';
+  qData.options.forEach((optText, index) => {
+    if (!optText) return;
+    const optDiv = document.createElement('div');
+    optDiv.classList.add('opt');
+    if (answers[currentQ] === index) {
+      optDiv.classList.add('selected');
+    }
+    optDiv.dataset.index = index;
+    optDiv.innerHTML = `
+      <div class="tag">${String.fromCharCode(65 + index)}</div>
+      <div class="opt-text">${optText}</div>
+    `;
+    optDiv.addEventListener('click', () => selectOption(index));
+    optsDiv.appendChild(optDiv);
+  });
+  prevBtn.disabled = (currentQ === 0);
+  prevBtn.style.opacity = (currentQ === 0) ? 0.5 : 1;
+}
+
+/**
+ * 选择选项并更新答案 (无需修改)
+ */
+function selectOption(optIndex) {
+  answers[currentQ] = optIndex;
+  optsDiv.querySelectorAll('.opt').forEach(opt => opt.classList.remove('selected'));
+  optsDiv.querySelector(`[data-index="${optIndex}"]`).classList.add('selected');
+  
+  setTimeout(() => {
+    if (currentQ < TOTAL_QUESTIONS - 1) {
+      currentQ++;
+      renderQuestion();
+    } else {
+      showResult();
+    }
+  }, 200);
+}
+
+/* ==================== 9. V-Final 3.2 计算与显示 (核心重构) ==================== */
+
+/**
+ * [V3.2 修复] 计算 8D(S_i) 和 4R(RoleFit)
+ * (使用 2 倍分值)
+ */
+function calculateScores() {
+  scores_8D_raw.fill(0);
+  role_fit_scores_4R.fill(0);
+  let allAnswered = true;
+  
+  // [V3.2 修复] 8D维度的固定得分 (扩大2倍)
+  const S_FIXED_SCORE = 10;
+
+  // --- 步骤 1: 计算 8D 原始分 (S_i_raw) ---
+  answers.forEach((selectedOptIndex, qIndex) => {
+    let ans_index = selectedOptIndex;
+    if (ans_index === null) {
+        ans_index = 2; 
+        allAnswered = false;
+    };
+
+    const mappings_8D = DIM_CALC_MAP[qIndex]; 
+    if (mappings_8D && mappings_8D[ans_index]) {
+      const dimsToUpdate = mappings_8D[ans_index]; 
+      dimsToUpdate.forEach(dimKey => {
+        const dimIndex = parseInt(dimKey.substring(1)) - 1; 
+        if (dimIndex >= 0 && dimIndex < 8) {
+          scores_8D_raw[dimIndex] += S_FIXED_SCORE;
+        }
+      });
+    }
+  });
+  
+  if (!allAnswered) {
+    personaSubDiv.innerText = "测评完成 (有未答题目，已按均值'C'计算)";
+  } else {
+    personaSubDiv.innerText = "测评完成 · 8维能力 & 4维定位";
+  }
+
+  // --- 步骤 2: 标准化 8D 分数 (S_i_pct) (0-100%) ---
+  // [V3.2] 使用 2 倍的最大分值
+  let final_scores_8D_pct = new Array(8).fill(0);
+  for (let i = 0; i < 8; i++) {
+    let pct = 0;
+    if (max_scores_8D[i] > 0) {
+        pct = scores_8D_raw[i] / max_scores_8D[i];
+    }
+    final_scores_8D_pct[i] = Math.max(0, Math.min(100, Math.round(pct * 100)));
+  }
+
+  // --- 步骤 3: V3.0 核心 - 计算 4R 融合分 (RoleFit) ---
+  for (let i = 0; i < 4; i++) {
+    const roleKey = `R${i + 1}`; 
+    const weights = ROLE_IDEAL_WEIGHTS_8D[roleKey];
+    
+    let totalFitScore = 0;
+    for (let j = 0; j < 8; j++) {
+      totalFitScore += final_scores_8D_pct[j] * weights[j];
+    }
+    role_fit_scores_4R[i] = totalFitScore;
+  }
+  
+  // 返回标准化的 8D 百分比 (S_i_pct)，供 showResult 使用
+  return final_scores_8D_pct; 
+}
+
+/**
+ * [V-Final 3.2 核心重构] 显示结果页
+ * (使用 V3.2 主/辅分析 修复)
+ */
+function showResult() {
+  quizCard.style.display = 'none';
+  resultCard.style.display = 'block';
+  
+  const final_scores_8D_pct = calculateScores(); 
+
+  // --- [V3.0] 4R 饼图计算 (基于 RoleFit) ---
+  let final_scores_4R_pct = new Array(4).fill(0);
+  const total_Role_Fit = role_fit_scores_4R.reduce((a, b) => a + b, 0);
+  
+  if (total_Role_Fit > 0) {
+    final_scores_4R_pct = role_fit_scores_4R.map(score => Math.round((score / total_Role_Fit) * 100));
+    let pctSum = final_scores_4R_pct.reduce((a, b) => a + b, 0);
+    if (pctSum !== 100 && pctSum > 0) {
+      let maxIdx = 0;
+      final_scores_4R_pct.forEach((pct, idx) => {
+          if (pct > final_scores_4R_pct[maxIdx]) maxIdx = idx;
+      });
+      const diff = 100 - pctSum;
+      final_scores_4R_pct[maxIdx] += diff; 
+    }
+  }
+
+  // --- [V3.0] 计算主要和辅助推荐 (基于 RoleFit) ---
+  const scores_4R_sorted = final_scores_4R_pct
+    .map((pct, index) => ({ pct, index }))
+    .sort((a, b) => b.pct - a.pct); 
+
+  const R_max_index = scores_4R_sorted[0].index;
+  const R_second_index = scores_4R_sorted[1].index;
+
+  const mainRoleName = ROLE_NAMES_4D[R_max_index].substring(3);
+  const secondRoleName = ROLE_NAMES_4D[R_second_index].substring(3);
+  
+  // --- 渲染结果 (V3.2) ---
+  
+  // 1. 渲染左侧 (人格分析 & 4R 饼图)
+  personaTitleDiv.innerText = `V-Final 定位：${mainRoleName}`;
+  mainRoleDiv.innerText = mainRoleName; 
+  
+  // [V3.2 修复] 
+  const mainText = ROLE_PERSONA_TEXT[R_max_index];
+  let secondaryText = ROLE_PERSONA_TEXT[R_second_index];
+  secondaryText = secondaryText.replace("【主要推荐：", "【辅助分析：");
+  advTextDiv.innerText = mainText + "\n\n" + secondaryText;
+
+  drawPieChart(final_scores_4R_pct); 
+
+  // 2. 渲染右侧 (8D 雷达图)
+  drawRadar(final_scores_8D_pct); 
+  
+  dimTextDiv.innerHTML = final_scores_8D_pct.map((pct, i) =>
+    `<strong>${DIM_NAMES_8D[i].split(':')[1].split('(')[0].trim()}:</strong> ${pct}%`
+  ).join('<br>');
+
+  // 3. 渲染左下角饼图下方的推荐文本
+  roleTextDiv.innerHTML = `<strong>主要推荐：${mainRoleName} (${scores_4R_sorted[0].pct}%)</strong>
+<br><strong>辅助推荐：${secondRoleName} (${scores_4R_sorted[1].pct}%)</strong>
+<div style='margin-top:8px; border-top: 1px solid #f0f0f0; padding-top: 8px;'>
+${final_scores_4R_pct.map((pct, i) =>
+    `${ROLE_NAMES_4D[i]}: ${pct}%`
+  ).join('<br>')}
+</div>`;
+  
+  setTimeout(() => window.scrollTo({top:0,behavior:'smooth'}), 100);
+}
+
+
+/* ==================== 10. 图表绘制 (V3.1) ==================== */
+
+/**
+ * [V3.1 修复] 绘制 8D 八维雷达图
+ * (实现 25% 饱满度 和 中文标签)
+ * @param {number[]} values - 8个维度的 "真实百分比" (0-100)
+ */
+function drawRadar(values) {
+  if (!window.Chart) {
+    console.error("Chart.js 未加载");
+    dimTextDiv.innerText = "图表库(Chart.js)加载失败，无法显示雷达图。";
+    return;
+  }
+  if (radarChartInstance) {
+    radarChartInstance.destroy();
+  }
+  const ctx = radarCanvas.getContext('2d');
+  
+  // [V3.1 修复] 25% 饱满度逻辑
+  const plotData = values.map(pct => ((pct / 100.0) * 7.5) + 2.5);
+  
+  radarChartInstance = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      // [V3.1 修复] 使用中文标签
+      labels: DIM_NAMES_8D.map(n => n.split(':')[1].split('(')[0].trim()), // "机械枪法"
+      datasets: [{
+        label: '8维能力',
+        data: plotData, // 使用 [2.5 - 10] 的视觉数据
+        fill: true,
+        backgroundColor: 'rgba(255, 107, 130, 0.4)',
+        borderColor: '#ff6b82',
+        borderWidth: 2,
+        pointBackgroundColor: '#ff6b82'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      scales: {
+        r: {
+          angleLines: { color: '#f0f0f0' },
+          suggestedMin: 0,
+          suggestedMax: 10, 
+          ticks: {
+            display: false,
+            stepSize: 2.5 
+          },
+          grid: {
+            color: '#f0f0f0'
+          },
+          pointLabels: {
+            font: {
+                size: 12,
+                weight: 'bold'
+            },
+            color: '#22303a'
+          }
+        }
+      },
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
+}
+
+/**
+ * 绘制 4R 角色饼图 (无需修改)
+ * @param {number[]} pcts - 4个角色的百分比 (0-100)
+ */
+function drawPieChart(pcts) {
+  if (!window.Chart) {
+    console.error("Chart.js 未加载");
+    roleTextDiv.innerText = "图表库(Chart.js)加载失败，无法显示饼图。";
+    return;
+  }
+  if (pieChartInstance) {
+    pieChartInstance.destroy();
+  }
+  const ctx = pieCanvas.getContext('2d');
+  const colors = ['#ff6b82', '#ffc145', '#81c784', '#64b5f6']; // 红(决斗), 黄(控场), 绿(哨卫), 蓝(先锋)
+  
+  pieChartInstance = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: ROLE_NAMES_4D.map(name => name.substring(3)), // 移除 "R1 "
+      datasets: [{
+        label: '角色定位',
+        data: pcts,
+        backgroundColor: colors,
+        borderColor: '#fff',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            font: { size: 12 },
+            padding: 20
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              let label = context.label || '';
+              if (label) label += ': ';
+              if (context.parsed !== null) label += context.parsed.toFixed(0) + '%';
+              return label;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+
+/* ==================== 11. 控制与事件监听 (V3.0) ==================== */
+
+/**
+ * 重新测试 (V3.0)
+ */
+function resetQuiz() {
+  currentQ = 0;
+  answers.fill(null);
+  scores_8D_raw.fill(0);
+  role_fit_scores_4R.fill(0);
+  
+  quizCard.style.display = 'block';
+  resultCard.style.display = 'none';
+  if (radarChartInstance) radarChartInstance.destroy();
+  if (pieChartInstance) pieChartInstance.destroy();
+  renderQuestion();
+}
+
+// “上一题” 按钮
+prevBtn.addEventListener('click', () => {
+  if (currentQ > 0) {
+    currentQ--;
+    renderQuestion();
+  }
+});
+// “重新测试” 按钮
+retestBtn.addEventListener('click', resetQuiz);
+
+// 键盘快捷键 (1-5)
+document.addEventListener('keydown', (e) => {
+  if(quizCard.style.display !== 'none' && quizCard.offsetParent !== null){
+    if(['1','2','3','4','5'].includes(e.key)){
+      e.preventDefault();
+      selectOption(parseInt(e.key) - 1); // 1->0, 2->1 ... 5->4
+    }
+  }
+});
+// 启动测试
+renderQuestion();
+
+</script>
+</body>
+</html>
